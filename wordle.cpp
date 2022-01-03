@@ -1,3 +1,12 @@
+//
+// A very simple, no frills Wordle solver - for those times when you think the answer is just
+//  not in your vocabulary.
+//
+// Thanks to Josh at powerlanguage for Wordle!
+//
+// Bill Forster billforsternz@gmail.com 2021.01.03
+//
+
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -6,7 +15,10 @@
 #include <map>
 #include <set>
 
-bool check_word( const std::string &word, const std::string &green_pattern, const std::string &yellow_pattern, const std::string &yellow_letters, const std::set<char> &black_letters )
+// Check the word list, one word at a time
+bool check_word( const std::string &word, const std::string &green_pattern,
+                 const std::string &yellow_pattern, const std::string &yellow_letters,
+                 const std::set<char> &black_letters )
 {
     int idx=0;
     std::set<char> build;
@@ -48,6 +60,7 @@ bool check_word( const std::string &word, const std::string &green_pattern, cons
     return true;
 }
 
+// Right trim, from my utils.cpp file, not need to include all of it though
 void rtrim( std::string &s )
 {
     size_t final_char_offset = s.find_last_not_of(" \n\r\t");
@@ -57,6 +70,7 @@ void rtrim( std::string &s )
         s.erase(final_char_offset+1);
 }
 
+// Entry point
 int main( int argc, char *argv[] )
 {
     const char *usage =
@@ -70,11 +84,12 @@ int main( int argc, char *argv[] )
     "black_letters  = letters known to be excluded, '-' to omit\n"
     "For example:\n"
     "  wordle b?nk? ?s??? s o\n"
-    "Prints 'banks', 'bunks\n"
+    "Prints 'banks', 'bunks'\n"
     "Run it more than once if you need more than one yellow_pattern\n"
     "\n"
     "Bill Forster, billforsternz@gmail.com\n";
 
+    // Check a few preconditions etc.
     const char *wordlist =  "words_alpha.txt";
     std::ifstream fin( wordlist );
     if( !fin )
@@ -107,12 +122,16 @@ int main( int argc, char *argv[] )
         printf( "%s", usage );
         return -1;
     }
+
+    // black_letters is really a std::set
     std::set<char> banned;
     for( char c: black_letters )
     {
         if( c != '-' )
             banned.insert(c);
     }
+
+    // Read in the word list, maybe later bake it in to the source code
     std::vector<std::string> words;
     for(;;)
     {
@@ -123,7 +142,9 @@ int main( int argc, char *argv[] )
         if( line.length() == 5 )
             words.push_back(line);
     }
-    printf( "Checking %u known five letter words\n", words.size() ); 
+
+    // Loop through the word list, easy peasy
+    printf( "Checking %u known five letter words\n", words.size() );
     for( std::string word: words )
     {
         if( check_word( word, green_pattern, yellow_pattern, yellow_letters, banned ) )
