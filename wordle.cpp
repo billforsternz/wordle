@@ -65,7 +65,7 @@ int main( int argc, char *argv[] )
     "Usage:\n"
     "  wordle green_pattern yellow_pattern yellow_letters black_letters\n"
     "green_pattern  = 5 letter known pattern, lower case letters and ?s\n"
-    "yellow_pattern = As above, but word cannot match this\n"
+    "yellow_pattern = As above, but word cannot match any of this\n"
     "yellow_letters = letters known to be included, '-' to omit\n"
     "black_letters  = letters known to be excluded, '-' to omit\n"
     "For example:\n"
