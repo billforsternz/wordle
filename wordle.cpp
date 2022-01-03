@@ -97,12 +97,17 @@ int main( int argc, char *argv[] )
     std::string black_letters(argv[2]);
     bool err = false;
     size_t offset;
+    if( green_pattern.length() != 5 )
+    {
+        printf( "Error: Green pattern string '%s' should be 5 characters long\n", green_pattern.c_str() );
+        err = true;
+    }
     if( (offset=green_pattern.find_first_not_of("?abcdefghijklmnopqrstuvwxyz")) != std::string::npos )
     {
         printf( "Error: Illegal character '%c' in green pattern string '%s'\n", green_pattern[offset], green_pattern.c_str() );
         err = true;
     }
-    else if( (offset=black_letters.find_first_not_of("-abcdefghijklmnopqrstuvwxyz")) != std::string::npos )
+    if( (offset=black_letters.find_first_not_of("-abcdefghijklmnopqrstuvwxyz")) != std::string::npos )
     {
         printf( "Error: Illegal character '%c' in black letters string '%s'\n", black_letters[offset], black_letters.c_str() );
         err = true;
