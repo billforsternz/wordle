@@ -17,11 +17,11 @@
 
 // Check the word list, one word at a time
 bool check_word( const std::string &word, const std::string &green_pattern,
-                 const std::string &yellow_pattern, const std::string &yellow_letters,
+                 const std::vector<std::string> &yellow_patterns, const std::string &yellow_letters,
                  const std::set<char> &black_letters )
 {
     int idx=0;
-    std::set<char> build;
+    std::set<char> build;   // build a set of letters from the word
     for( char c: word )
     {
         char p = green_pattern[idx];
@@ -37,7 +37,7 @@ bool check_word( const std::string &word, const std::string &green_pattern,
             return false;   // word doesn't match acceptable pattern
         }
         idx++;
-        build.insert(c);
+        build.insert(c);    // dups are automatically ignored
     }
     for( char c: yellow_letters )
     {
@@ -49,81 +49,95 @@ bool check_word( const std::string &word, const std::string &green_pattern,
                 return false;   // yellow_letters letter not present
         }
     }
-    idx = 0;
-    for( char c: word )
+    for( std::string yellow_pattern: yellow_patterns )
     {
-        char p = yellow_pattern[idx];
-        if( c == p )
-            return false;   // word matches unacceptable pattern
-        idx++;
+        idx = 0;
+        for( char c: word )
+        {
+            char p = yellow_pattern[idx];
+            if( c == p )
+                return false;   // word matches unacceptable pattern
+            idx++;
+        }
     }
     return true;
-}
-
-// Right trim, from my utils.cpp file, not need to include all of it though
-void rtrim( std::string &s )
-{
-    size_t final_char_offset = s.find_last_not_of(" \n\r\t");
-    if( final_char_offset == std::string::npos )
-        s.clear();
-    else
-        s.erase(final_char_offset+1);
 }
 
 // Entry point
 int main( int argc, char *argv[] )
 {
     const char *usage =
-    "Simple command line Wordle solver. Use only when terminally frustrated!\n"
+    "Usage;\n"
+    "  wordle green_pattern black_letters yellow_patterns...\n"
+    "    green_pattern   = 5 letter known pattern, lower case letters and ?s\n"
+    "    black_letters   = letters known to be excluded, '-' to omit\n"
+    "    yellow_patterns = 5 letter patterns, lower case letters and ?s\n"
+    "For example;\n"
+    "  You know o is the middle letter, you know e,l,i,a,n and r aren't\n"
+    "  included. You know s and t are included, but t can't be the second\n"
+    "  letter and s can't be the first, second or last letter. Run this\n"
+    "  command;\n"
+    "  wordle ??o?? elianr st??s ?s???\n"
+    "Prints 'boost', 'coost', 'ghost', 'moost' and 'toosh'. The large word\n"
+    "list, courtesy of \"https://github.com/dwyl/english-words\" (thank you)\n"
+    "includes many strange words, use your judgement!\n"
     "\n"
-    "Usage:\n"
-    "  wordle green_pattern yellow_pattern yellow_letters black_letters\n"
-    "green_pattern  = 5 letter known pattern, lower case letters and ?s\n"
-    "yellow_pattern = As above, but word cannot match any of this\n"
-    "yellow_letters = letters known to be included, '-' to omit\n"
-    "black_letters  = letters known to be excluded, '-' to omit\n"
-    "For example:\n"
-    "  wordle b?nk? ?s??? s o\n"
-    "Prints 'banks', 'bunks'\n"
-    "Run it more than once if you need more than one yellow_pattern\n"
+    "Thanks to Josh at powerlanguage.co.uk for creating Wordle.\n"
     "\n"
-    "Bill Forster, billforsternz@gmail.com\n";
+    "Bill Forster, github.com/billforsternz/wordle, billforsternz@gmail.com\n";
 
     // Check a few preconditions etc.
-    const char *wordlist =  "words_alpha.txt";
-    std::ifstream fin( wordlist );
-    if( !fin )
+    if( argc < 3 )
     {
-        printf( "Cannot read file %s\n", wordlist );
-        return -1;
-    }
-    if( argc != 5 )
-    {
-        printf( "%s\n", usage );
+        printf( "Simple command line Wordle solver. Use only when terminally frustrated!\n\n" );
+        printf( "%s", usage );
         return -1;
     }
     std::string green_pattern(argv[1]);
-    std::string yellow_pattern(argv[2]);
-    std::string yellow_letters(argv[3]);
-    std::string black_letters(argv[4]);
+    std::string black_letters(argv[2]);
     bool err = false;
-    if( green_pattern.find_first_not_of("?abcdefghijklmnopqrstuvwxyz") != std::string::npos )
+    size_t offset;
+    if( (offset=green_pattern.find_first_not_of("?abcdefghijklmnopqrstuvwxyz")) != std::string::npos )
+    {
+        printf( "Error: Illegal character '%c' in green pattern string '%s'\n", green_pattern[offset], green_pattern.c_str() );
         err = true;
-    if( yellow_pattern.find_first_not_of("?abcdefghijklmnopqrstuvwxyz") != std::string::npos )
+    }
+    else if( (offset=black_letters.find_first_not_of("-abcdefghijklmnopqrstuvwxyz")) != std::string::npos )
+    {
+        printf( "Error: Illegal character '%c' in black letters string '%s'\n", black_letters[offset], black_letters.c_str() );
         err = true;
-    if( yellow_letters.find_first_not_of("-abcdefghijklmnopqrstuvwxyz") != std::string::npos )
-        err = true;
-    if( black_letters.find_first_not_of("-abcdefghijklmnopqrstuvwxyz") != std::string::npos )
-        err = true;
-    if( green_pattern.length() != 5 || yellow_pattern.length() != 5 )
-        err = true;
+    }
+
+    // Create yellow_patterns and yellow_letters
+    std::vector<std::string> yellow_patterns;
+    std::string yellow_letters;
+    for( int i=3; !err && i<argc; i++ )
+    {
+        std::string s(argv[i]);
+        if( (offset=s.find_first_not_of("?abcdefghijklmnopqrstuvwxyz")) != std::string::npos )
+        {
+            printf( "Error: Illegal character '%c' in yellow pattern string '%s'\n", s[offset], s.c_str() );
+            err = true;
+        }
+        if( s.length() != 5 )
+        {
+            printf( "Error: Yellow pattern string '%s' should be 5 characters long\n", s.c_str() );
+            err = true;
+        }
+        yellow_patterns.push_back(s);
+        for( char c: s )
+        {
+            if( c != '?' && yellow_letters.find(c)==std::string::npos )
+                yellow_letters.push_back(c);
+        }
+    }
     if( err )
     {
         printf( "%s", usage );
         return -1;
     }
 
-    // black_letters is really a std::set
+    // Parameter black_letters is a std::set of banned letters
     std::set<char> banned;
     for( char c: black_letters )
     {
@@ -131,23 +145,14 @@ int main( int argc, char *argv[] )
             banned.insert(c);
     }
 
-    // Read in the word list, maybe later bake it in to the source code
-    std::vector<std::string> words;
-    for(;;)
-    {
-        std::string line;
-        if( !std::getline(fin,line) )
-            break;
-        rtrim(line);
-        if( line.length() == 5 )
-            words.push_back(line);
-    }
-
     // Loop through the word list, easy peasy
-    printf( "Checking %u known five letter words\n", words.size() );
-    for( std::string word: words )
+    extern const char *wordlist[];
+    extern unsigned int wordlist_length;
+    printf( "Checking %u known five letter words\n", wordlist_length );
+    for( unsigned int i=0; i<wordlist_length; i++ )
     {
-        if( check_word( word, green_pattern, yellow_pattern, yellow_letters, banned ) )
+        std::string word(wordlist[i]);
+        if( check_word( word, green_pattern, yellow_patterns, yellow_letters, banned ) )
             printf( "%s\n", word.c_str() );
     }
     return 0;
