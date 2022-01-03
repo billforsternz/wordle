@@ -1,4 +1,6 @@
 Simple command line Wordle solver. Use only when terminally frustrated!
+Thanks to https://github.com/dwyl/english-words for the unaltered
+words_alpha.txt file which provides the word list.
 
     Usage:
       wordle green_pattern yellow_pattern yellow_letters black_letters
