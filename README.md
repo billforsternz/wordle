@@ -11,12 +11,13 @@ Simple command line Wordle solver. Use only when terminally frustrated!
       letter and s can't be the first, second or last letter. Run this
       command;
       wordle ??o?? elianr st??s ?s???
-    Prints 'boost', 'coost', 'ghost', 'moost' and 'toosh'. The large word
-    list, courtesy of https://github.com/dwyl/english-words (thank you)
-    includes many strange words, use your judgement!
+    Prints 'boost', 'coost' and 'ghost'. The word list now matches the
+    actual Wordle word list (thanks Github contributor SeanJA). It doesn't
+    have quite as many strange words as the previous huge list, but it
+    clearly still has some!
 
 Thanks to [https://github.com/dwyl/english-words](https://github.com/dwyl/english-words) for the unaltered
-word list (which is now baked in, no external file needed).
+word list, and to SeanJA for improving this by tracking down the actual Wordle word list.
 
 Thanks to Josh at powerlanguage.co.uk for creating Wordle.
 
